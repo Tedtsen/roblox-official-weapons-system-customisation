@@ -1,6 +1,7 @@
 local CollectionService = game:GetService("CollectionService")
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
+local Debris = game:GetService("Debris")
 
 local IsServer = RunService:IsServer()
 
@@ -182,7 +183,7 @@ function WeaponsSystem.setup()
 		end
 
 		WeaponsSystem.networkFolder = networkFolder
-		WeaponsSystem.camera:setEnabled(true)
+		--WeaponsSystem.camera:setEnabled(true)
 	end
 
 	--Setup weapon tools and listening
@@ -393,6 +394,7 @@ function WeaponsSystem.setWeaponEquipped(weapon, equipped)
 
 	if WeaponsSystem.gui then
 		WeaponsSystem.gui:setEnabled(hasWeapon)
+		WeaponsSystem.camera:setEnabled(hasWeapon)
 
 		if WeaponsSystem.currentWeapon then
 			WeaponsSystem.gui:setCrosshairWeaponScale(WeaponsSystem.currentWeapon:getConfigValue("CrosshairScale", 1))
@@ -407,13 +409,16 @@ function WeaponsSystem.setWeaponEquipped(weapon, equipped)
 end
 
 function WeaponsSystem.getHumanoid(part)
-	while part and part ~= workspace do
-		if part:IsA("Model") and part.PrimaryPart and part.PrimaryPart.Name == "HumanoidRootPart" then
-			return part:FindFirstChildOfClass("Humanoid")
+	if part and part ~= workspace then
+		local humanoid = part:FindFirstChildOfClass('Humanoid')
+		if humanoid then
+			print("humanoid found")
+			return humanoid
+		else
+			return WeaponsSystem.getHumanoid(part.Parent)
 		end
-
-		part = part.Parent
 	end
+	return nil
 end
 
 function WeaponsSystem.getPlayerFromHumanoid(humanoid)
@@ -421,6 +426,30 @@ function WeaponsSystem.getPlayerFromHumanoid(humanoid)
 		if player.Character and humanoid:IsDescendantOf(player.Character) then
 			return player
 		end
+	end
+end
+
+function TagHumanoid(target, dealer)
+	local Creator_Tag = Instance.new("ObjectValue")
+	Creator_Tag.Name = "creator"
+	Creator_Tag.Value = dealer
+	Debris:AddItem(Creator_Tag, 2)
+	Creator_Tag.Parent = target
+end
+
+function UntagHumanoid(target)
+	for i, v in pairs(target:GetChildren()) do
+		if v:IsA("ObjectValue") and v.Name == "creator" then
+			v:Destroy()
+		end
+	end
+end
+
+local function _damageCallback(system, target, amount, damageType, dealer, hitInfo, damageData)
+	if target:IsA("Humanoid") then
+		UntagHumanoid(target)
+		TagHumanoid(target, dealer)
+		target:TakeDamage(amount)
 	end
 end
 

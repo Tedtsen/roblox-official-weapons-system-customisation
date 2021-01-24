@@ -269,10 +269,12 @@ function ShoulderCamera:setEnabled(enabled)
 
 		if self.currentHumanoid then
 			self.currentHumanoid.AutoRotate = true
+			ShoulderCamera.SpringService:Target(self.currentHumanoid, 0.95, 4, { WalkSpeed = self.normalWalkSpeed })
 		end
 
 		if self.currentCamera then
 			self.currentCamera.CameraType = Enum.CameraType.Custom
+			self.currentCamera.CameraSubject = self.currentHumanoid
 		end
 
 		self:updateZoomState()

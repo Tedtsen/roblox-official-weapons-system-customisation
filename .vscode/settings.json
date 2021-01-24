@@ -1,0 +1,9 @@
+{
+    "Lua.diagnostics.ignore": [
+        "OnServerInvoke",
+        "LowerAngle"
+    ],
+    "Lua.diagnostics.disable": [
+        "incorrect-call-arguments"
+    ]
+}
